@@ -21,13 +21,11 @@ export default function Home() {
   const { x, y, z } = useAccelerometer();
   const [permissionGranted, setPermissionGranted] = useState(false);
 
-  // Références pour stocker les valeurs passées
   const xValues = useRef([]);
   const yValues = useRef([]);
   const zValues = useRef([]);
-  const maxValues = 5; // Nombre de valeurs pour la moyenne glissante
+  const maxValues = 20;
 
-  // États pour stocker les valeurs lissées
   const [smoothX, setSmoothX] = useState(0);
   const [smoothY, setSmoothY] = useState(0);
   const [smoothZ, setSmoothZ] = useState(0);
@@ -55,17 +53,14 @@ export default function Home() {
 
   useEffect(() => {
     if (x !== null && y !== null && z !== null) {
-      // Ajout des nouvelles valeurs à la liste
       xValues.current.push(x);
       yValues.current.push(y);
       zValues.current.push(z);
 
-      // Limiter la taille des listes de valeurs à `maxValues`
       if (xValues.current.length > maxValues) xValues.current.shift();
       if (yValues.current.length > maxValues) yValues.current.shift();
       if (zValues.current.length > maxValues) zValues.current.shift();
 
-      // Calculer la moyenne mobile pour chaque axe
       setSmoothX(
         xValues.current.reduce((a, b) => a + b, 0) / xValues.current.length
       );
