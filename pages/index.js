@@ -21,22 +21,18 @@ export default function Home() {
   const { x, y, z } = useAccelerometer();
   const [permissionGranted, setPermissionGranted] = useState(false);
 
-  // États pour la localisation GPS
   const [latitude, setLatitude] = useState(null);
   const [longitude, setLongitude] = useState(null);
 
-  // Références pour la moyenne glissante des axes de l'accéléromètre
   const xValues = useRef([]);
   const yValues = useRef([]);
   const zValues = useRef([]);
-  const maxValues = 5; // Nombre de valeurs pour la moyenne glissante
+  const maxValues = 20;
 
-  // États pour les valeurs lissées
   const [smoothX, setSmoothX] = useState(0);
   const [smoothY, setSmoothY] = useState(0);
   const [smoothZ, setSmoothZ] = useState(0);
 
-  // Demander l'autorisation pour utiliser les capteurs de mouvement sur iOS
   const requestMotionPermission = async () => {
     if (typeof DeviceMotionEvent.requestPermission === "function") {
       try {
@@ -52,7 +48,6 @@ export default function Home() {
     }
   };
 
-  // Utilisation de l'API de géolocalisation du navigateur
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.watchPosition(
@@ -64,9 +59,9 @@ export default function Home() {
           console.error("Erreur de géolocalisation", error);
         },
         {
-          enableHighAccuracy: true, // Demander une grande précision
-          timeout: 5000, // Temps avant l'échec de la requête
-          maximumAge: 0, // Ne pas utiliser les coordonnées en cache
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0,
         }
       );
     } else {
@@ -74,7 +69,6 @@ export default function Home() {
     }
   }, []);
 
-  // Moyenne glissante pour lisser les valeurs de l'accéléromètre
   useEffect(() => {
     if (x !== null && y !== null && z !== null) {
       xValues.current.push(x);
@@ -109,7 +103,7 @@ export default function Home() {
         <title>Accéléromètre App avec GPS</title>
         <meta
           name="description"
-          content="App avec accéléromètre et géolocalisation"
+          content="Accelerometer x GPS"
         />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
@@ -138,7 +132,6 @@ export default function Home() {
 
           {permissionGranted && (
             <div>
-              <h1>Accéléromètre iPhone avec GPS</h1>
               <p>
                 Accélération X: {smoothX ? smoothX.toFixed(2) : "En attente..."}
               </p>
@@ -148,6 +141,7 @@ export default function Home() {
               <p>
                 Accélération Z: {smoothZ ? smoothZ.toFixed(2) : "En attente..."}
               </p>
+              <br />
               <p>
                 Latitude: {latitude ? latitude.toFixed(6) : "En attente..."}
               </p>
