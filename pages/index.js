@@ -2,7 +2,7 @@ import Head from "next/head";
 import Image from "next/image";
 import localFont from "next/font/local";
 import styles from "@/styles/Home.module.css";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import useAccelerometer from "../hooks/useAccelerometer";
 
 const geistSans = localFont({
@@ -20,6 +20,17 @@ const geistMono = localFont({
 export default function Home() {
   const { x, y, z } = useAccelerometer();
   const [permissionGranted, setPermissionGranted] = useState(false);
+
+  // Références pour stocker les valeurs passées
+  const xValues = useRef([]);
+  const yValues = useRef([]);
+  const zValues = useRef([]);
+  const maxValues = 5; // Nombre de valeurs pour la moyenne glissante
+
+  // États pour stocker les valeurs lissées
+  const [smoothX, setSmoothX] = useState(0);
+  const [smoothY, setSmoothY] = useState(0);
+  const [smoothZ, setSmoothZ] = useState(0);
 
   const requestMotionPermission = async () => {
     if (typeof DeviceMotionEvent.requestPermission === "function") {
@@ -41,6 +52,31 @@ export default function Home() {
       requestMotionPermission();
     }
   }, []);
+
+  useEffect(() => {
+    if (x !== null && y !== null && z !== null) {
+      // Ajout des nouvelles valeurs à la liste
+      xValues.current.push(x);
+      yValues.current.push(y);
+      zValues.current.push(z);
+
+      // Limiter la taille des listes de valeurs à `maxValues`
+      if (xValues.current.length > maxValues) xValues.current.shift();
+      if (yValues.current.length > maxValues) yValues.current.shift();
+      if (zValues.current.length > maxValues) zValues.current.shift();
+
+      // Calculer la moyenne mobile pour chaque axe
+      setSmoothX(
+        xValues.current.reduce((a, b) => a + b, 0) / xValues.current.length
+      );
+      setSmoothY(
+        yValues.current.reduce((a, b) => a + b, 0) / yValues.current.length
+      );
+      setSmoothZ(
+        zValues.current.reduce((a, b) => a + b, 0) / zValues.current.length
+      );
+    }
+  }, [x, y, z]);
 
   return (
     <>
@@ -75,9 +111,15 @@ export default function Home() {
           {permissionGranted && (
             <div>
               <h1>Accéléromètre iPhone</h1>
-              <p>Accélération X: {x ? x.toFixed(2) : "En attente..."}</p>
-              <p>Accélération Y: {y ? y.toFixed(2) : "En attente..."}</p>
-              <p>Accélération Z: {z ? z.toFixed(2) : "En attente..."}</p>
+              <p>
+                Accélération X: {smoothX ? smoothX.toFixed(2) : "En attente..."}
+              </p>
+              <p>
+                Accélération Y: {smoothY ? smoothY.toFixed(2) : "En attente..."}
+              </p>
+              <p>
+                Accélération Z: {smoothZ ? smoothZ.toFixed(2) : "En attente..."}
+              </p>
             </div>
           )}
         </main>
